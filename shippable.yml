@@ -1,0 +1,18 @@
+language: c
+os: linux
+compiler: gcc
+env: CONFIG=Debug
+
+# install:
+    # - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 50
+    # - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 50
+script:
+    - make
+    - make tests
+    - ./bin/debug/magus-tests
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+        packages:
+            - g++-8

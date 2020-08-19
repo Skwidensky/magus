@@ -1,0 +1,7 @@
+deps
+bin
+MINGW-*
+GNULINUX-*
+MACOS-*
+*.swp
+*.log
