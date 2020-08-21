@@ -1,5 +1,6 @@
 .PHONY: src tests cli gtest deps clean all distclean
 all: src cli
+
 gtest:
 	$(MAKE) -C tests -f Makefile.gtest RELEASE=$(RELEASE)
 

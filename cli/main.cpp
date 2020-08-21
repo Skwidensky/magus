@@ -3,12 +3,16 @@
 #include <string>
 #include "version.h"
 #include "cli_parser.hpp"
-#include "hello_name_generator.h"
+#include "sensors.h"
 #include "logger_init.h"
 
 using namespace std;
 using namespace stlplus;
 using namespace Magus;
+
+// static void onNext(long n) { cout << "* "
+//                                   << "time: " + n << "\n"; }
+// static void onEnd() { cout << "* end\n"; }
 
 namespace Magus
 {
@@ -16,7 +20,7 @@ namespace Magus
     {
         const char *usage =
             VER_PRODUCTNAME_STR " " VER_PRODUCTVERSION_STR "\n"
-R"(
+                                R"(
 Usage: magus --help | <user_name>
 c++ project that outputs Hello World
 Commands:
@@ -27,7 +31,7 @@ Options:
 
         std::cout << usage << std::endl;
     }
-}
+} // namespace Magus
 
 int main(int, char *argv[])
 {
@@ -54,7 +58,7 @@ int main(int, char *argv[])
 
     message_handler messages(std::cerr);
     cli_parser parser(cli_defs, messages);
-    if(!parser.parse(argv))
+    if (!parser.parse(argv))
     {
         PrintUsage();
         exit(1);
@@ -63,29 +67,39 @@ int main(int, char *argv[])
     string log_file;
 
     string name = "Sir/Madam";
-    for(unsigned i = 0; i < parser.size(); i++)
+    for (unsigned i = 0; i < parser.size(); i++)
     {
-        if(parser.name(i) == "help")
+        if (parser.name(i) == "help")
         {
             PrintUsage();
             exit(0);
         }
-        else if(parser.name(i) == "log")
+        else if (parser.name(i) == "log")
         {
             log_file = parser.string_value(i);
         }
-        else if(parser.name(i) == "")
+        else if (parser.name(i) == "")
         {
             name = parser.string_value(i);
         }
     }
 
-    if(log_file.empty())
+    if (log_file.empty())
     {
         log_file = "debug.log";
     }
 
     InitLogger(log_file);
-    cout << GenerateHelloName(name) << endl;
-    return 0;
+    // showDepthImg();
+    // showPointCloud();
+    // startT265("testPose");
+    // observableString().subscribe(onNext, onEnd);
+    // Subscribe to interval Observable
+    // observableInterval().subscribe(
+    //     [](int v) { printf("OnNext: %d\n", v); },
+    //     []() { printf("OnCompleted\n"); });
+    initializeSensors();
+    observableD435().subscribe([](rs2::frameset msg){
+            std::cout << msg.get_timestamp() << ", " << std::endl;
+        });
 }
