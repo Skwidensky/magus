@@ -13,7 +13,7 @@ enum Sensor
 namespace Magus
 {
     void initializeSensors();
-    void showDepthImg();
     void showPointCloud();
     rxcpp::observable<rs2::frameset> observableD435();
+    rxcpp::observable<rs2::frameset> observableT265();
 } // namespace Magus

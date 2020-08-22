@@ -10,30 +10,7 @@ using namespace std;
 using namespace stlplus;
 using namespace Magus;
 
-// static void onNext(long n) { cout << "* "
-//                                   << "time: " + n << "\n"; }
-// static void onEnd() { cout << "* end\n"; }
-
-namespace Magus
-{
-    void PrintUsage()
-    {
-        const char *usage =
-            VER_PRODUCTNAME_STR " " VER_PRODUCTVERSION_STR "\n"
-                                R"(
-Usage: magus --help | <user_name>
-c++ project that outputs Hello World
-Commands:
-    --help                  output this help message
-Options:
-    --log <LOG_FILE>        the log file to output diagnostic messages
-)";
-
-        std::cout << usage << std::endl;
-    }
-} // namespace Magus
-
-int main(int, char *argv[])
+int main()
 {
     cli_definitions cli_defs = {
         {
@@ -57,49 +34,26 @@ int main(int, char *argv[])
     };
 
     message_handler messages(std::cerr);
-    cli_parser parser(cli_defs, messages);
-    if (!parser.parse(argv))
-    {
-        PrintUsage();
-        exit(1);
-    }
-
-    string log_file;
-
-    string name = "Sir/Madam";
-    for (unsigned i = 0; i < parser.size(); i++)
-    {
-        if (parser.name(i) == "help")
-        {
-            PrintUsage();
-            exit(0);
-        }
-        else if (parser.name(i) == "log")
-        {
-            log_file = parser.string_value(i);
-        }
-        else if (parser.name(i) == "")
-        {
-            name = parser.string_value(i);
-        }
-    }
-
-    if (log_file.empty())
-    {
-        log_file = "debug.log";
-    }
-
+    string log_file = "debug.log";
     InitLogger(log_file);
-    // showDepthImg();
-    // showPointCloud();
-    // startT265("testPose");
-    // observableString().subscribe(onNext, onEnd);
-    // Subscribe to interval Observable
-    // observableInterval().subscribe(
-    //     [](int v) { printf("OnNext: %d\n", v); },
-    //     []() { printf("OnCompleted\n"); });
+
     initializeSensors();
-    observableD435().subscribe([](rs2::frameset msg){
-            std::cout << msg.get_timestamp() << ", " << std::endl;
-        });
+    auto loop = rxcpp::observe_on_event_loop();
+    Magus::streamhandler sh;
+
+    /* Real-time asynchronous handling of data for the D435 and T265 cameras */
+    observableD435()
+        .observe_on(loop)
+        .map([&](rs2::frameset fs) { return sh.handleD435Frameset(fs); })
+        .subscribe();
+
+    observableT265()
+        .observe_on(loop)
+        .map([&](rs2::frameset fs) { return sh.handleT265Frameset(fs); })
+        .subscribe();
+
+    while (true)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
 }
