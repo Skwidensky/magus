@@ -4,6 +4,7 @@
 #include "version.h"
 #include "cli_parser.hpp"
 #include "sensors.h"
+#include "processing.h"
 #include "logger_init.h"
 
 using namespace std;
@@ -36,21 +37,27 @@ int main()
     message_handler messages(std::cerr);
     string log_file = "debug.log";
     InitLogger(log_file);
-
+    initModels();
     initializeSensors();
     auto loop = rxcpp::observe_on_event_loop();
     Magus::streamhandler sh;
 
     /* Real-time asynchronous handling of data for the D435 and T265 cameras */
     observableD435()
+        // slow down Observable
+        .sample_with_time(std::chrono::duration<int, std::milli>(1000))
         .observe_on(loop)
         .map([&](rs2::frameset fs) { return sh.handleD435Frameset(fs); })
         .subscribe();
 
-    observableT265()
-        .observe_on(loop)
-        .map([&](rs2::frameset fs) { return sh.handleT265Frameset(fs); })
-        .subscribe();
+    // on command, collect a batch of frames to perform inference on
+
+    // observableT265()
+    //     // slow down Observable
+    //     .sample_with_time(std::chrono::duration<int, std::milli>(1000))
+    //     .observe_on(loop)
+    //     .map([&](rs2::frameset fs) { return sh.handleT265Frameset(fs); })
+    //     .subscribe();
 
     while (true)
     {

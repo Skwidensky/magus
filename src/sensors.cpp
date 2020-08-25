@@ -16,6 +16,7 @@ namespace Magus
     // Create a Pipeline - this serves as a top-level API for streaming and processing frames
     rs2::pipeline mD435Pipe;
     rs2::pipeline mT265Pipe;
+
     // Struct for managing D435
     struct d435State
     {
@@ -38,10 +39,10 @@ namespace Magus
 
         // Create a configuration for configuring the pipeline with a non default profile
         rs2::config cfg;
-        cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
-        cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
-        cfg.enable_stream(RS2_STREAM_INFRARED, 1, 640, 480, RS2_FORMAT_Y8, 30);
-        cfg.enable_stream(RS2_STREAM_INFRARED, 2, 640, 480, RS2_FORMAT_Y8, 30);
+        cfg.enable_stream(RS2_STREAM_COLOR, 848, 480, RS2_FORMAT_BGR8, 30);
+        cfg.enable_stream(RS2_STREAM_DEPTH, 848, 480, RS2_FORMAT_Z16, 30);
+        cfg.enable_stream(RS2_STREAM_INFRARED, 1, 848, 480, RS2_FORMAT_Y8, 30);
+        cfg.enable_stream(RS2_STREAM_INFRARED, 2, 848, 480, RS2_FORMAT_Y8, 30);
 
         // Configure and start the pipeline
         mD435Pipe.start(cfg);
@@ -69,7 +70,7 @@ namespace Magus
     void initializeSensors()
     {
         startD435();
-        startT265();
+        // startT265();
     }
 
     rx::observable<rs2::frameset> observableD435()

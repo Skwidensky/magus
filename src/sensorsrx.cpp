@@ -2,6 +2,7 @@
 #include <thread>
 #include <memory>
 #include <chrono>
+#include <sys/time.h>
 #include <librealsense2/rs.hpp>
 #include <opencv4/opencv2/core/core.hpp>
 #include <opencv4/opencv2/imgcodecs/imgcodecs.hpp>
@@ -9,11 +10,11 @@
 #include <opencv4/opencv2/opencv.hpp>
 #include <processing.h>
 #include "rxcpp/rx.hpp"
+#include "plog/Log.h"
 
 namespace rx = rxcpp;
 using namespace std;
 using namespace cv;
-
 rs2::colorizer m_color_map;
 
 namespace Magus
@@ -51,6 +52,7 @@ namespace Magus
 
     rx::observable<rs2::frameset> streamdriver(int t, rs2::pipeline pipe, rs2::colorizer color_map)
     {
+        LOG_INFO << "LOG: Creating streamdriver";
         m_color_map = color_map;
         return rx::sources::create<rs2::frameset>([t, pipe](auto out) {
             std::thread th([t, pipe, out]() {
@@ -75,14 +77,14 @@ namespace Magus
 
         rs2::frame depth_frame = m_color_map.colorize(fs.get_depth_frame()); // Find and colorize the depth data
         // Query frame size (width and height)
-        const int w = depth_frame.as<rs2::video_frame>().get_width();
-        const int h = depth_frame.as<rs2::video_frame>().get_height();
-
+        const int w = depth.get_width();
+        const int h = depth.get_height();
+        
         // Query the distance from the camera to the object in the center of the image
         float dist_to_center = depth.get_distance(w / 2, h / 2);
 
         // Print the distance
-        // cout << "\r" 
+        // cout << "\r"
         //      << "The camera is facing an object " << dist_to_center << " meters away ";
 
         // get left and right infrared frames from frameset
@@ -99,14 +101,15 @@ namespace Magus
         applyColorMap(irMat_right, irMat_right, COLORMAP_OCEAN);
 
         //Get each frame
-        rs2::frame color_frame = fs.get_color_frame();
+        rs2::video_frame color_frame = fs.get_color_frame();
         // Creating OpenCV Matrix from a color image
-        Mat color(Size(640, 480), CV_8UC3, (void *)color_frame.get_data(), Mat::AUTO_STEP);
+        Mat color(Size(w, h), CV_8UC3, (void *)color_frame.get_data(), Mat::AUTO_STEP);
         // Creating OpenCV Matrix from a depth image
         Mat depth1(Size(w, h), CV_8UC3, (void *)depth_frame.get_data(), Mat::AUTO_STEP);
+        
+        read(fs);
 
         // Display in a GUI
-        read(fs);
         // imshow("Color Image", color);
         // imshow("Depth Image", depth1);
         // imshow("IR Left", irMat_left);
@@ -143,14 +146,14 @@ namespace Magus
         auto accel_frame = af.as<rs2::motion_frame>();
         // Get accelerometer measurements
         rs2_vector accel_data = accel_frame.get_motion_data();
-        // cout 
+        // cout
         //      << "Acceleration: " << setprecision(3) << fixed << " X: " << accel_data.x << " Y: " << accel_data.y << " Z: " << accel_data.z << "\r";
 
         rs2::video_frame fisheye_frame1 = fs.get_fisheye_frame(1);
         rs2::video_frame fisheye_frame2 = fs.get_fisheye_frame(2);
         // Query frame size (width and height)
-        const int w = fisheye_frame1.as<rs2::video_frame>().get_width();
-        const int h = fisheye_frame1.as<rs2::video_frame>().get_height();
+        const int w = fisheye_frame1.get_width();
+        const int h = fisheye_frame1.get_height();
         Mat fisheye_mat1 = Mat(Size(w, h), CV_8UC1, (void *)fisheye_frame1.get_data(), Mat::AUTO_STEP);
         Mat fisheye_mat2 = Mat(Size(w, h), CV_8UC1, (void *)fisheye_frame2.get_data(), Mat::AUTO_STEP);
         // Display in a GUI

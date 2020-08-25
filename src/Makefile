@@ -5,5 +5,5 @@ CXXFLAGS += -I./ -I../include -I../deps/plog/include -I../deps/RxCpp/Rx/v2/src -
 # Enable to see the state machine transition
 # CXXFLAGS += -DTRACE_STATE_MACHINE
 LDFLAGS += -Wall -pthread
-LDLIBS += -L/usr/local/lib -lrealsense2 -lopencv_core -lopencv_highgui -lopencv_imgproc -tesseract
+LDLIBS += -L/usr/local/lib -lrealsense2 -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_dnn -lm
 include ../deps/makefiles/gcc.mak

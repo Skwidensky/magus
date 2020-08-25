@@ -6,3 +6,4 @@ GNULINUX-*
 MACOS-*
 *.swp
 *.log
+src/models
